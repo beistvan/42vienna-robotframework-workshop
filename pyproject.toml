@@ -1,0 +1,26 @@
+[project]
+name = "rf-workshop-42vienna"
+version = "0.1.0"
+description = "Robot Framework E2E testing workshop for 42 Vienna"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "robotframework>=7.0",
+    "robotframework-browser>=19.0",
+]
+
+[dependency-groups]
+dev = [
+    "robotframework-robocop>=8.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.robot]
+outputdir = "results"
+loglevel = "DEBUG"
+
+[tool.robot.variables]
+BASE_URL = "https://www.saucedemo.com"
+HEADLESS = "true"

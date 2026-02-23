@@ -1,0 +1,19 @@
+# Test results
+results/
+output/
+log.html
+report.html
+output.xml
+screenshots/
+
+# Python
+*.pyc
+__pycache__/
+.venv/
+
+# IDE
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
