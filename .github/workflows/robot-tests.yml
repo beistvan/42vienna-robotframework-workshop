@@ -1,0 +1,44 @@
+name: Robot Framework Tests
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  robot-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Initialize Browser Library
+        run: uv run rfbrowser init chromium
+
+      - name: Run Robot Framework tests
+        run: |
+          uv run robot \
+            --outputdir results \
+            --loglevel DEBUG \
+            --variable HEADLESS:true \
+            tests/
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robot-results
+          path: results/

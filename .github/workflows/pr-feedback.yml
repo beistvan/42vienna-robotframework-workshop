@@ -1,0 +1,91 @@
+name: PR Test Feedback
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  test-and-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Initialize Browser Library
+        run: uv run rfbrowser init chromium
+
+      - name: Run Robot Framework tests
+        id: tests
+        continue-on-error: true
+        run: |
+          uv run robot \
+            --outputdir results \
+            --loglevel DEBUG \
+            --variable HEADLESS:true \
+            tests/ 2>&1 | tee test-output.txt
+
+      - name: Parse results and comment on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let output = '';
+            try {
+              output = fs.readFileSync('test-output.txt', 'utf8');
+            } catch (e) {
+              output = 'Could not read test output.';
+            }
+
+            // Extract summary line (last few lines of robot output)
+            const lines = output.trim().split('\n');
+            const summaryLines = lines.slice(-10).join('\n');
+
+            const passed = '${{ steps.tests.outcome }}' === 'success';
+            const icon = passed ? '✅' : '❌';
+            const status = passed ? 'All tests passed!' : 'Some tests failed.';
+
+            const body = `## ${icon} Robot Framework Test Results
+
+            **Status:** ${status}
+
+            <details>
+            <summary>Test Output (last 10 lines)</summary>
+
+            \`\`\`
+            ${summaryLines}
+            \`\`\`
+
+            </details>
+
+            📦 Full results (log.html, report.html) are available as build artifacts.
+            `;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-robot-results
+          path: results/
