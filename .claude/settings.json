@@ -1,0 +1,8 @@
+{
+    "mcpServers": {
+        "robotframework-mcp": {
+            "command": "robotframework-mcp",
+            "type": "stdio"
+        }
+    }
+}
