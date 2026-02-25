@@ -16,7 +16,7 @@ Open Cart
 Cart Should Contain
     [Documentation]    Verify that a product with the given name is in the cart.
     [Arguments]    ${product_name}
-    Get Text    ${CART_ITEMS}    contains    ${product_name}
+    Get Element Count    css=.cart_item:has-text("${product_name}")    >=    1
 
 Cart Should Be Empty
     [Documentation]    Verify that the cart contains no items.
